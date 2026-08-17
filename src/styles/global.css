@@ -1,0 +1,1407 @@
+/* The Marked Paper - manila desk pad, warm sheets, blue-black ink, marking pens. */
+
+:root {
+  --desk: #c3a884;
+  --desk-deep: #a98d67;
+
+  --sheet: #fbf8f1;
+  --sheet-2: #f4efe3;
+  --sheet-edge: #ded3bd;
+  --rule: #ded5c2;
+  --rule-soft: #ebe4d5;
+  --margin-rule: #dfa9a2;
+
+  --ink: #1b2a4a;
+  --ink-2: #4d5872;
+  --graphite: #655e4e;
+
+  --red: #b62a22;
+  --red-wash: #f9ece9;
+  --green: #276240;
+  --green-wash: #eaf1ea;
+
+  --ff-read: "Literata", Georgia, "Times New Roman", serif;
+  --ff-head: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --ff-type: "Courier Prime", "Courier New", ui-monospace, monospace;
+
+  --masthead: 58px;
+  --contents: 268px;
+  --notes: 244px;
+  --margin-col: 52px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font: 400 16.5px/1.72 var(--ff-read);
+  background-color: var(--desk);
+  /* authored grain: fractal noise, not a gradient standing in for texture */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.29 0 0 0 0 0.22 0 0 0 0 0.13 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23d)'/%3E%3C/svg%3E");
+  background-attachment: fixed;
+}
+
+::selection {
+  background: #f3d6a2;
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--ff-head);
+  font-weight: 600;
+  letter-spacing: -0.006em;
+  text-wrap: balance;
+}
+
+/* ---------- marks ---------- */
+
+.mark {
+  display: block;
+  overflow: visible;
+}
+
+.mark path {
+  stroke-dasharray: 60;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mark-draw path {
+    animation: draw 0.42s cubic-bezier(0.16, 0.9, 0.3, 1) backwards;
+  }
+  .mark-draw path:nth-child(2) {
+    animation-delay: 0.11s;
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 60;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.mark-tick {
+  color: var(--green);
+}
+
+.mark-cross,
+.mark-ring,
+.mark-under {
+  color: var(--red);
+}
+
+/* ---------- masthead ---------- */
+
+.masthead {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: var(--masthead);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 22px;
+  background: var(--sheet);
+  border-bottom: 3px double var(--rule);
+  box-shadow: 0 2px 6px rgba(60, 43, 22, 0.16);
+}
+
+.masthead-title {
+  font-family: var(--ff-head);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.masthead-meta {
+  font-family: var(--ff-type);
+  font-size: 11.5px;
+  color: var(--graphite);
+  white-space: nowrap;
+}
+
+.tabs {
+  display: flex;
+  gap: 26px;
+  margin-left: auto;
+  align-self: stretch;
+}
+
+.tabs a {
+  display: flex;
+  align-items: center;
+  font-family: var(--ff-head);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--graphite);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -3px;
+}
+
+.tabs a:hover {
+  color: var(--ink);
+}
+
+.tabs a.active {
+  color: var(--ink);
+  border-bottom-color: var(--red);
+}
+
+.tally {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--ff-type);
+  font-size: 12px;
+  color: var(--graphite);
+}
+
+.tally b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.gauge {
+  display: block;
+  width: 108px;
+  height: 9px;
+  border: 1px solid var(--rule);
+  background: var(--sheet-2);
+  padding: 1px;
+}
+
+.gauge > i {
+  display: block;
+  height: 100%;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--green) 0 3px,
+    rgba(39, 98, 64, 0.45) 3px 6px
+  );
+}
+
+#menuBtn {
+  display: none;
+}
+
+.readbar {
+  position: fixed;
+  top: var(--masthead);
+  left: 0;
+  height: 2px;
+  background: var(--red);
+  z-index: 31;
+}
+
+/* ---------- paper ---------- */
+
+.sheet {
+  position: relative;
+  background-color: var(--sheet);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.42 0 0 0 0 0.35 0 0 0 0 0.22 0 0 0 0.14 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)'/%3E%3C/svg%3E");
+  border: 1px solid var(--sheet-edge);
+  padding: 30px 34px;
+  margin-bottom: 22px;
+  box-shadow:
+    0 2px 5px rgba(60, 43, 22, 0.14),
+    0 14px 30px rgba(60, 43, 22, 0.11);
+}
+
+.sheet.ruled {
+  padding-left: calc(var(--margin-col) + 22px);
+}
+
+.sheet.ruled::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 var(--margin-col);
+  width: 1px;
+  background: var(--margin-rule);
+}
+
+.paper-title {
+  font-size: 30px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.paper-meta {
+  font-family: var(--ff-type);
+  font-size: 12px;
+  color: var(--graphite);
+  margin: 10px 0 0;
+}
+
+.paper-meta .sep {
+  color: var(--rule);
+  padding: 0 6px;
+}
+
+.paper-lede {
+  margin: 18px 0 0;
+  max-width: 62ch;
+  color: var(--ink-2);
+}
+
+.instruction {
+  position: absolute;
+  left: 0;
+  width: var(--margin-col);
+  font-family: var(--ff-type);
+  font-size: 10px;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--graphite);
+  text-align: center;
+}
+
+/* ---------- controls ---------- */
+
+button,
+select,
+input[type="search"] {
+  font: inherit;
+  color: var(--ink);
+}
+
+button {
+  cursor: pointer;
+}
+
+.btn {
+  font-family: var(--ff-head);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 10px 18px;
+  background: var(--sheet);
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--sheet);
+}
+
+.btn:disabled {
+  border-color: var(--rule);
+  color: #918b7c;
+  cursor: not-allowed;
+}
+
+.btn.primary {
+  background: var(--ink);
+  color: var(--sheet);
+  border-color: var(--ink);
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: #0f1c36;
+}
+
+.btn.marked {
+  border-color: var(--green);
+  color: var(--green);
+  background: var(--green-wash);
+}
+
+.btn.marked:hover:not(:disabled) {
+  background: var(--green);
+  color: var(--sheet);
+}
+
+.btn.quiet {
+  border-color: var(--rule);
+  color: var(--graphite);
+}
+
+.btn.quiet:hover:not(:disabled) {
+  background: var(--sheet-2);
+  color: var(--ink);
+  border-color: var(--graphite);
+}
+
+select {
+  font-family: var(--ff-type);
+  font-size: 13.5px;
+  padding: 6px 6px 6px 2px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  border-radius: 0;
+}
+
+select:hover {
+  border-bottom-color: var(--red);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field > span {
+  font-family: var(--ff-head);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 26px;
+  align-items: flex-end;
+}
+
+.hint {
+  font-family: var(--ff-type);
+  font-size: 12px;
+  color: var(--graphite);
+  margin: 20px 0 0;
+}
+
+kbd {
+  font-family: var(--ff-type);
+  font-size: 11px;
+  border: 1px solid var(--rule);
+  background: var(--sheet-2);
+  padding: 1px 5px;
+}
+
+/* Box and tick: the only checkbox on the paper. */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  border: 1px solid var(--graphite);
+  background: var(--sheet);
+  cursor: pointer;
+  position: relative;
+}
+
+input[type="checkbox"]:hover {
+  border-color: var(--ink);
+}
+
+input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  inset: -7px -8px -8px -5px;
+  background: no-repeat center/contain
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23276240' stroke-width='2.1' stroke-linecap='round'%3E%3Cpath d='M3.4 12.9c2.2 1 3.9 2.6 5.3 5.1'/%3E%3Cpath d='M8.7 18C11 12.4 14.6 8 20.6 4.6'/%3E%3C/svg%3E");
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  font-size: 14.5px;
+}
+
+/* ---------- course: contents column ---------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: var(--contents) minmax(0, 1fr) var(--notes);
+  gap: 32px;
+  max-width: 1460px;
+  margin: 0 auto;
+  padding: calc(var(--masthead) + 30px) 26px 90px;
+}
+
+/* the front page IS the contents, so the contents column is not printed twice */
+.layout.front {
+  grid-template-columns: minmax(0, 1fr) var(--notes);
+  max-width: 1120px;
+}
+
+.layout.front > .contents {
+  display: none;
+}
+
+.contents {
+  position: sticky;
+  top: calc(var(--masthead) + 30px);
+  align-self: start;
+  max-height: calc(100vh - var(--masthead) - 60px);
+  overflow-y: auto;
+  padding: 20px 18px 24px;
+  background: var(--sheet);
+  border: 1px solid var(--sheet-edge);
+  box-shadow:
+    0 2px 5px rgba(60, 43, 22, 0.14),
+    0 12px 26px rgba(60, 43, 22, 0.1);
+}
+
+.contents::-webkit-scrollbar,
+.margin-notes::-webkit-scrollbar {
+  width: 7px;
+}
+
+.contents::-webkit-scrollbar-thumb,
+.margin-notes::-webkit-scrollbar-thumb {
+  background: var(--rule);
+}
+
+.contents-search {
+  width: 100%;
+  font-family: var(--ff-type);
+  font-size: 12.5px;
+  padding: 6px 2px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  margin-bottom: 14px;
+}
+
+.contents-search:focus {
+  outline: none;
+  border-bottom-color: var(--red);
+}
+
+.contents-search::placeholder {
+  color: var(--graphite);
+}
+
+.group-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+  font-family: var(--ff-head);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--graphite);
+  margin: 24px 0 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.group-head span:last-child {
+  font-family: var(--ff-type);
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: start;
+  text-decoration: none;
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.42;
+  padding: 6px 6px 6px 0;
+}
+
+.entry:hover {
+  color: var(--ink);
+}
+
+.entry.active {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.entry-mins {
+  font-family: var(--ff-type);
+  font-size: 11px;
+  color: var(--graphite);
+  padding-top: 3px;
+}
+
+.entry .mark {
+  width: 15px;
+  height: 15px;
+  margin-top: 3px;
+}
+
+/* ---------- course: syllabus ---------- */
+
+.syl-section {
+  margin-top: 44px;
+  margin-bottom: 34px;
+}
+
+.syl-section:last-child {
+  margin-bottom: 0;
+}
+
+.syl-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 7px;
+}
+
+.syl-head h2 {
+  font-size: 17px;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.syl-head .score {
+  margin-left: auto;
+  font-family: var(--ff-type);
+  font-size: 12px;
+  color: var(--graphite);
+  white-space: nowrap;
+}
+
+.syl-sub {
+  font-size: 14.5px;
+  color: var(--ink-2);
+  margin: 10px 0 10px;
+  max-width: 62ch;
+}
+
+.syl-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px dotted var(--rule);
+  padding: 10px 4px;
+  font: inherit;
+  font-size: 15.5px;
+  color: var(--ink);
+}
+
+/* the mark lands in the booklet margin, where marking actually happens */
+.syl-tick {
+  position: absolute;
+  left: calc((var(--margin-col) + 22px) * -1);
+  width: var(--margin-col);
+  display: flex;
+  justify-content: center;
+}
+
+.syl-item:hover {
+  background: var(--sheet-2);
+}
+
+.syl-item .no {
+  font-family: var(--ff-type);
+  font-size: 12px;
+  color: var(--graphite);
+}
+
+.syl-item .mins {
+  font-family: var(--ff-type);
+  font-size: 11.5px;
+  color: var(--graphite);
+}
+
+.syl-item .mark {
+  width: 18px;
+  height: 18px;
+}
+
+.syl-item.done .name {
+  color: var(--graphite);
+}
+
+/* ---------- course: the slip ---------- */
+
+.slip {
+  position: sticky;
+  top: calc(var(--masthead) + 30px);
+  background: var(--sheet-2);
+  border: 1px solid var(--sheet-edge);
+  padding: 20px 22px 22px;
+  box-shadow:
+    0 2px 5px rgba(60, 43, 22, 0.14),
+    0 12px 26px rgba(60, 43, 22, 0.1);
+}
+
+.slip h2 {
+  font-family: var(--ff-head);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--graphite);
+  margin: 0 0 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.slip dl {
+  margin: 0 0 18px;
+  font-family: var(--ff-type);
+  font-size: 12.5px;
+}
+
+.slip dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px dotted var(--rule);
+}
+
+.slip dt {
+  color: var(--graphite);
+}
+
+.slip dd {
+  margin: 0;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.slip .btn {
+  width: 100%;
+  margin-bottom: 9px;
+}
+
+.slip .gauge {
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+/* the begin action is stamped on the slip, not printed on it */
+.slip .btn.primary {
+  transform: rotate(-1.4deg);
+  border: 2px solid var(--ink);
+  box-shadow: 0 0 0 1px var(--sheet) inset;
+  letter-spacing: 0.16em;
+}
+
+.slip-confirm {
+  border-top: 1px dotted var(--rule);
+  padding-top: 12px;
+}
+
+.slip-confirm p {
+  margin: 0 0 10px;
+  font-family: var(--ff-type);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+/* ---------- lesson sheet ---------- */
+
+.stamp {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  transform: rotate(-7deg);
+  font-family: var(--ff-head);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--red);
+  border: 2px solid var(--red);
+  padding: 5px 10px 4px;
+  opacity: 0.75;
+}
+
+.content {
+  /* 62ch of Literata's "0" lands at roughly 70 rendered characters */
+  max-width: 62ch;
+  margin-top: 28px;
+}
+
+.content h2 {
+  font-size: 20px;
+  margin: 40px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.content h3 {
+  font-size: 16.5px;
+  margin: 30px 0 10px;
+}
+
+.content h4 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--graphite);
+  margin: 26px 0 8px;
+}
+
+.content p {
+  margin: 0 0 15px;
+}
+
+.content ul,
+.content ol {
+  padding-left: 24px;
+}
+
+.content li {
+  margin: 6px 0;
+}
+
+.content hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 34px 0;
+}
+
+.content a {
+  color: var(--ink);
+  text-decoration-color: var(--margin-rule);
+  text-underline-offset: 3px;
+}
+
+.content blockquote {
+  margin: 20px 0;
+  padding: 2px 0 2px 20px;
+  border-left: 1px solid var(--margin-rule);
+  color: var(--ink-2);
+  font-style: italic;
+}
+
+.content code,
+.qtext code,
+.marker-note code {
+  font-family: var(--ff-type);
+  font-size: 0.86em;
+  background: var(--sheet-2);
+  border: 1px solid var(--rule-soft);
+  padding: 0 4px;
+}
+
+.content pre,
+.qtext pre {
+  font-family: var(--ff-type);
+  background: #16203a;
+  color: #e9e4d6;
+  border: 0;
+  border-left: 1px solid var(--red);
+  padding: 15px 18px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.content pre code,
+.qtext pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+.content .codehilite {
+  margin: 20px 0;
+  background: transparent;
+}
+
+.content pre.mermaid {
+  background: var(--sheet-2);
+  color: inherit;
+  border: 1px solid var(--rule);
+  border-left: 1px solid var(--rule);
+  padding: 20px;
+  margin: 22px 0;
+  text-align: center;
+  overflow-x: auto;
+  line-height: normal;
+}
+
+.content pre.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 22px 0;
+  display: block;
+  overflow-x: auto;
+  font-size: 14.5px;
+}
+
+.content th,
+.content td {
+  border: 1px solid var(--rule);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.content th {
+  font-family: var(--ff-head);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  background: var(--sheet-2);
+}
+
+.content li.task {
+  list-style: none;
+  margin-left: -24px;
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+}
+
+.content li.task input.task-box {
+  margin-top: 5px;
+}
+
+.content li.task.checked {
+  color: var(--graphite);
+}
+
+.content li.task.checked > *:not(input) {
+  text-decoration: line-through;
+  text-decoration-color: var(--green);
+  text-decoration-thickness: 1px;
+}
+
+.sheet-foot {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 46px;
+  padding-top: 20px;
+  border-top: 3px double var(--rule);
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* ---------- margin notes ---------- */
+
+.margin-notes {
+  position: sticky;
+  top: calc(var(--masthead) + 30px);
+  align-self: start;
+  max-height: calc(100vh - var(--masthead) - 60px);
+  overflow-y: auto;
+  padding-left: 16px;
+  border-left: 1px solid var(--margin-rule);
+}
+
+.margin-notes h2 {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin: 0 0 12px;
+}
+
+.margin-notes a {
+  display: block;
+  font-size: 12.8px;
+  line-height: 1.42;
+  color: var(--ink);
+  text-decoration: none;
+  padding: 5px 0;
+}
+
+.margin-notes a.sub {
+  padding-left: 13px;
+  font-size: 12.2px;
+}
+
+.margin-notes a:hover {
+  color: var(--red);
+}
+
+.margin-notes a.active {
+  color: var(--red);
+  font-weight: 600;
+}
+
+/* ---------- quiz ---------- */
+
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: calc(var(--masthead) + 34px) 26px 90px;
+}
+
+.bank {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 11px;
+  align-items: center;
+  padding: 10px 2px;
+  border-bottom: 1px dotted var(--rule);
+  cursor: pointer;
+  font-size: 15.5px;
+}
+
+.bank .count {
+  font-family: var(--ff-type);
+  font-size: 12px;
+  color: var(--graphite);
+  white-space: nowrap;
+}
+
+.q-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--ff-type);
+  font-size: 12.5px;
+  color: var(--ink);
+  padding-bottom: 8px;
+}
+
+.timer {
+  font-family: var(--ff-type);
+  font-variant-numeric: tabular-nums;
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+}
+
+.timer.low {
+  color: var(--red);
+}
+
+.progress-rule {
+  height: 3px;
+  background: var(--rule-soft);
+  margin-bottom: 26px;
+}
+
+.progress-rule > div {
+  height: 100%;
+  background: var(--ink);
+}
+
+/* the small aside written on the desk, not on the paper */
+.desk-note {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.desk-note button {
+  background: none;
+  border: 0;
+  padding: 2px 0;
+  cursor: pointer;
+  font-family: var(--ff-type);
+  font-size: 12.5px;
+  color: var(--ink);
+  border-bottom: 1px solid rgba(27, 42, 74, 0.4);
+}
+
+.desk-note button:hover {
+  color: var(--red);
+  border-bottom-color: var(--red);
+}
+
+.q-no {
+  position: absolute;
+  left: 0;
+  width: var(--margin-col);
+  text-align: center;
+  font-family: var(--ff-type);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--graphite);
+}
+
+.q-mark {
+  position: absolute;
+  left: 11px;
+  top: 58px;
+  width: 30px;
+}
+
+.q-mark .mark {
+  width: 30px;
+  height: 30px;
+}
+
+.qtext {
+  font-size: 18px;
+  line-height: 1.58;
+  margin: 0 0 6px;
+  white-space: pre-wrap;
+}
+
+.q-topic {
+  font-family: var(--ff-type);
+  font-size: 11.5px;
+  color: var(--graphite);
+  margin: 0 0 24px;
+}
+
+.option {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 26px;
+  gap: 14px;
+  align-items: start;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--rule-soft);
+  padding: 13px 6px;
+}
+
+.option:last-of-type {
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.option:hover:not(:disabled) {
+  background: var(--sheet-2);
+}
+
+.option .letter {
+  font-family: var(--ff-type);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--graphite);
+  border: 1px solid var(--rule);
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+}
+
+.option.picked .letter {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--sheet);
+}
+
+.option .mark {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+}
+
+.option.right {
+  background: var(--green-wash);
+}
+
+.option.right .letter {
+  border-color: var(--green);
+  color: var(--green);
+  background: none;
+}
+
+.option.wrong {
+  background: var(--red-wash);
+}
+
+.option.wrong .letter {
+  border-color: var(--red);
+  color: var(--red);
+  background: none;
+}
+
+.option:disabled {
+  cursor: default;
+}
+
+.marker-note {
+  margin-top: 24px;
+  padding: 16px 18px;
+  background: var(--sheet-2);
+  border-top: 1px solid var(--rule);
+  font-size: 15px;
+}
+
+.marker-note .verdict {
+  display: block;
+  font-family: var(--ff-head);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+
+.marker-note.right .verdict {
+  color: var(--green);
+}
+
+.marker-note.wrong .verdict {
+  color: var(--ink);
+}
+
+.q-foot {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 3px double var(--rule);
+}
+
+/* ---------- results: the front-cover mark grid ---------- */
+
+.total {
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  flex-wrap: wrap;
+}
+
+.total-figure {
+  position: relative;
+  padding: 20px 32px;
+  flex: 0 0 auto;
+}
+
+.total-figure .n {
+  font-family: var(--ff-type);
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.total-figure .mark-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.total-copy .verdict {
+  font-family: var(--ff-head);
+  font-size: 19px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.total-copy p {
+  margin: 0;
+  font-family: var(--ff-type);
+  font-size: 13px;
+  color: var(--graphite);
+}
+
+.markgrid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.markgrid th {
+  font-family: var(--ff-head);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--graphite);
+  text-align: left;
+  padding: 0 10px 7px 0;
+  border-bottom: 1px solid var(--ink);
+}
+
+.markgrid td {
+  padding: 10px 10px 10px 0;
+  border-bottom: 1px dotted var(--rule);
+  vertical-align: middle;
+}
+
+.markgrid td.num {
+  font-family: var(--ff-type);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.markgrid tfoot td {
+  border-bottom: 0;
+  border-top: 1px solid var(--ink);
+  font-weight: 700;
+}
+
+.pass {
+  color: var(--green);
+}
+
+.fail {
+  color: var(--ink);
+}
+
+.script-item {
+  position: relative;
+  padding: 22px 0 24px var(--margin-col);
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.script-item .q-mark {
+  top: 22px;
+}
+
+.script-head {
+  font-family: var(--ff-type);
+  font-size: 11.5px;
+  color: var(--graphite);
+  margin-bottom: 8px;
+}
+
+.answer-line {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 10px;
+  font-size: 15px;
+  margin-top: 8px;
+}
+
+.answer-line .lbl {
+  font-family: var(--ff-head);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--graphite);
+  padding-top: 5px;
+}
+
+.empty {
+  font-family: var(--ff-type);
+  font-size: 13px;
+  color: var(--graphite);
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1220px) {
+  .margin-notes {
+    display: none;
+  }
+  .layout {
+    grid-template-columns: var(--contents) minmax(0, 1fr);
+  }
+  .slip {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --margin-col: 34px;
+  }
+  #menuBtn {
+    display: block;
+    padding: 7px 12px;
+  }
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .layout.front {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .masthead-meta,
+  .masthead-title,
+  .tally {
+    display: none;
+  }
+  .tabs {
+    flex: none;
+  }
+  .slip {
+    grid-column: 1;
+  }
+  .contents {
+    position: fixed;
+    inset: var(--masthead) auto 0 0;
+    width: 300px;
+    z-index: 25;
+    max-height: none;
+    height: calc(100vh - var(--masthead));
+    transform: translateX(-101%);
+    transition: transform 0.2s ease-out;
+  }
+  .contents.open {
+    transform: none;
+  }
+  .sheet {
+    padding: 22px 20px;
+  }
+  .sheet.ruled {
+    padding-left: calc(var(--margin-col) + 14px);
+  }
+  .wrap {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (max-width: 560px) {
+  .syl-item {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 4px 8px;
+    align-items: start;
+  }
+  .syl-item .mins {
+    grid-column: 2;
+  }
+  .syl-tick {
+    left: calc((var(--margin-col) + 14px) * -1);
+  }
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
