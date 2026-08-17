@@ -45,6 +45,30 @@ def deglyph_lines(text):
         lines.append(stripped)
     return "\n".join(lines)
 
+MARK_YES = {"\u2705", "\u2714", "\u2611", "\u2713"}
+MARK_NO = {"\u274c", "\u2716", "\u2717", "\u2718"}
+
+
+def table_marks_to_words(text):
+    """Turn check/cross glyphs that fill a whole table cell into Yes/No.
+
+    Runs before deglyph strips pictographs, so availability tables keep meaning
+    instead of rendering as empty cells. Bullet-list marks are left untouched.
+    """
+    lines = []
+    for line in text.splitlines():
+        if line.lstrip().startswith("|"):
+            cells = line.split("|")
+            for i, cell in enumerate(cells):
+                token = cell.strip().replace("\ufe0f", "")
+                if token in MARK_YES:
+                    cells[i] = cell.replace(cell.strip(), "Yes")
+                elif token in MARK_NO:
+                    cells[i] = cell.replace(cell.strip(), "No")
+            line = "|".join(cells)
+        lines.append(line)
+    return "\n".join(lines)
+
 SECTIONS = [
     {
         "id": "plan",
@@ -146,7 +170,7 @@ def flatten_toc(tokens, depth=0, out=None):
 
 
 def build_lesson(rel_path):
-    raw = deglyph_lines((REPO / rel_path).read_text(encoding="utf-8"))
+    raw = deglyph_lines(table_marks_to_words((REPO / rel_path).read_text(encoding="utf-8")))
 
     title = rel_path
     heading = H1.search(raw)
